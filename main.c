@@ -403,15 +403,25 @@ void opp(CPU cpu) {
  * Soustraction.
  */
 void sub(CPU cpu, int *B) {
-  // à compléter
+  // objectif : A - B = A + (-B)
+  cpu.R1 = cpu.alu.accu; // R1 = l'adresse de du cpu
+  cpu.R2 = copyWord(B);  // R2 = B
+
+  cpu.alu.accu = cpu.R2; // on stock B dans l'accu
+  opp(cpu);              // on calcule l'oposer
+  cpu.R2 = cpu.alu.accu; // R2 = -B
+
+  cpu.alu.accu = cpu.R1;
+  add(cpu.alu, cpu.R2); // A + (-B)
+  cpu.R0 = cpu.alu.accu;
+  cpu.alu.accu = copyWord(cpu.R0);
+  cpu.R1 = cpu.alu.accu; // on met à l'adrssse de l'alu A + (-B)
 }
 
 /*
  * Multiplication.
  */
-void mul(CPU cpu, int *B) {
-  // à compléter
-}
+void mul(CPU cpu, int *B) { cpu.R1 = cpu.alu.accu; }
 
 /////////////////////////////////////////////////////////
 // Programme de test
