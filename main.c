@@ -382,7 +382,9 @@ void xor
      */
     void logicalShift(CPU cpu, int n) {
   if (n > 0) {
-    shift(cpu.alu);
+    cpu.alu.flags[1] = cpu.alu.accu[NBITS - n];
+    add(cpu.alu, cpu.alu.accu);
+    cpu.alu.accu[NBITS - 1] = 0;
     logicalShift(cpu, n - 1);
   }
 }
@@ -421,7 +423,22 @@ void sub(CPU cpu, int *B) {
 /*
  * Multiplication.
  */
-void mul(CPU cpu, int *B) { cpu.R1 = cpu.alu.accu; }
+void mul(CPU cpu, int *B) {
+  // objectif : A * B = A + A + ... + A (B fois)
+  copyValue(cpu.R2, cpu.alu.accu);      // R2 = B
+  copyValue(cpu.alu.accu, initWord(0)); // accu = 0
+  for (int i = 0; i < NBITS; i++) {
+    if (get(B, i) == 1) {
+      add(cpu.alu, cpu.R2);            // accu = accu + A
+      copyValue(cpu.R0, cpu.alu.accu); // R0 = accu
+    }
+    copyValue(cpu.alu.accu, cpu.R2); // on remet A dans l'accumulateur
+    logicalShift(cpu, 1);            // on décale A d'un bit vers la gauche
+    copyValue(cpu.R2, cpu.alu.accu); // R2 = A
+
+    copyValue(cpu.alu.accu, cpu.R0); // on remet accu à sa valeur initiale
+  }
+}
 
 /////////////////////////////////////////////////////////
 // Programme de test
@@ -430,9 +447,9 @@ void mul(CPU cpu, int *B) { cpu.R1 = cpu.alu.accu; }
 int main(int argc, char *argv[]) {
 
   /*
-  Ce programme est fourni à titre d'exemple pour permettre de tester simplement
-  vos fonctions. Il vous est bien entendu possible de le modifier/compléter, ou
-  encore d'écrire vos propres fonctions de test.
+  Ce programme est fourni à titre d'exemple pour permettre de tester
+  simplement vos fonctions. Il vous est bien entendu possible de le
+  modifier/compléter, ou encore d'écrire vos propres fonctions de test.
   */
 
   int *operand;
